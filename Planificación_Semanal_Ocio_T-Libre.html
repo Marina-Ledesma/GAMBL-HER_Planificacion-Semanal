@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Planificación Semanal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      user-select: none;
+    }
+
+    td {
+      transition: background-color 0.15s ease;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-6 font-sans">
+  <div class="max-w-7xl mx-auto">
+    <div class="bg-white rounded-3xl shadow-xl p-6 mb-6">
+      <h1 class="text-3xl font-bold text-slate-800 mb-2">
+        Planificación Semanal
+      </h1>
+
+      <p class="text-slate-600 mb-6">
+        Selecciona una categoría y arrastra sobre las celdas para colorear bloques de tiempo.
+      </p>
+
+      <div id="categories" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6"></div>
+
+      <div class="flex flex-wrap gap-3 mb-2">
+        <button
+          onclick="clearPlanner()"
+          class="px-4 py-2 rounded-xl bg-slate-800 text-white hover:opacity-90"
+        >
+          Borrar planificación
+        </button>
+
+        <button
+          onclick="downloadPlanner()"
+          class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:opacity-90"
+        >
+          Descargar planificación
+        </button>
+
+        <label class="px-4 py-2 rounded-xl bg-emerald-600 text-white cursor-pointer hover:opacity-90">
+          Importar planificación
+          <input
+            type="file"
+            accept="application/json"
+            onchange="uploadPlanner(event)"
+            class="hidden"
+          />
+        </label>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-xl overflow-auto border border-slate-200">
+      <table class="border-collapse min-w-full" id="plannerTable">
+        <thead class="sticky top-0 z-10 bg-slate-100">
+          <tr id="headerRow"></tr>
+        </thead>
+
+        <tbody id="plannerBody"></tbody>
+      </table>
+    </div>
+
+    <div class="mt-6 bg-white rounded-3xl shadow-xl p-6 text-sm text-slate-700">
+      <h2 class="font-bold text-lg mb-3">Cómo utilizar la plantilla</h2>
+
+      <ul class="space-y-2 list-disc pl-5">
+        <li>Selecciona una categoría.</li>
+        <li>Haz clic y arrastra para colorear varias celdas.</li>
+        <li>Haz doble clic en una celda para borrarla.</li>
+        <li>Puedes descargar tu semana y volver a cargarla más adelante.</li>
+        <li>La planificación usa bloques de 30 minutos.</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    const days = [
+      'Lunes',
+      'Martes',
+      'Miércoles',
+      'Jueves',
+      'Viernes',
+      'Sábado',
+      'Domingo'
+    ];
+
+    const categories = {
+      'Descanso': 'bg-blue-300',
+      'Trabajo': 'bg-red-300',
+      'Desplazamientos': 'bg-yellow-300',
+      'Cuidado personal': 'bg-green-300',
+      'Tareas de la casa': 'bg-purple-300',
+      'Obligaciones familiares': 'bg-pink-300'
+    };
+
+    let selectedCategory = 'Trabajo';
+    let plannerData = {};
+    let isDragging = false;
+
+    const categoryContainer = document.getElementById('categories');
+    const headerRow = document.getElementById('headerRow');
+    const plannerBody = document.getElementById('plannerBody');
+
+    function renderCategories() {
+      categoryContainer.innerHTML = '';
+
+      Object.entries(categories).forEach(([name, color]) => {
+        const button = document.createElement('button');
+
+        button.className = `p-3 rounded-2xl border-2 text-sm font-medium transition-all ${color}`;
+
+        if (selectedCategory === name) {
+          button.classList.add('border-slate-900', 'scale-105', 'shadow-lg');
+        } else {
+          button.classList.add('border-transparent');
+        }
+
+        button.innerText = name;
+
+        button.onclick = () => {
+          selectedCategory = name;
+          renderCategories();
+        };
+
+        categoryContainer.appendChild(button);
+      });
+    }
+
+    function createHeader() {
+      headerRow.innerHTML = '<th class="border p-2 min-w-[90px] bg-slate-200 text-slate-700 text-sm">Hora</th>';
+
+      days.forEach(day => {
+        headerRow.innerHTML += `
+          <th class="border p-2 min-w-[150px] bg-slate-200 text-slate-700">
+            ${day}
+          </th>
+        `;
+      });
+    }
+
+    function generateTimeSlots() {
+      const slots = [];
+
+      for (let hour = 0; hour < 24; hour++) {
+        for (let min = 0; min < 60; min += 30) {
+          const h = hour.toString().padStart(2, '0');
+          const m = min.toString().padStart(2, '0');
+          slots.push(`${h}:${m}`);
+        }
+      }
+
+      return slots;
+    }
+
+    function paintCell(cell, key) {
+      plannerData[key] = selectedCategory;
+
+      cell.className = `border h-10 cursor-pointer ${categories[selectedCategory]}`;
+      cell.title = selectedCategory;
+    }
+
+    function createTable() {
+      plannerBody.innerHTML = '';
+
+      const timeSlots = generateTimeSlots();
+
+      timeSlots.forEach(time => {
+        const row = document.createElement('tr');
+
+        const hourCell = document.createElement('td');
+        hourCell.className = 'border text-xs text-center p-2 bg-slate-50 font-medium text-slate-600';
+        hourCell.innerText = time;
+
+        row.appendChild(hourCell);
+
+        days.forEach(day => {
+          const key = `${day}-${time}`;
+
+          const cell = document.createElement('td');
+
+          const category = plannerData[key];
+          const color = category ? categories[category] : 'bg-white';
+
+          cell.className = `border h-10 cursor-pointer ${color}`;
+          cell.title = category || 'Vacío';
+
+          cell.onmousedown = () => {
+            isDragging = true;
+            paintCell(cell, key);
+          };
+
+          cell.onmouseenter = () => {
+            if (isDragging) {
+              paintCell(cell, key);
+            }
+          };
+
+          cell.ondblclick = () => {
+            delete plannerData[key];
+            cell.className = 'border h-10 cursor-pointer bg-white';
+            cell.title = 'Vacío';
+          };
+
+          row.appendChild(cell);
+        });
+
+        plannerBody.appendChild(row);
+      });
+    }
+
+    document.body.onmouseup = () => {
+      isDragging = false;
+    };
+
+    function clearPlanner() {
+      const confirmDelete = confirm('¿Seguro que quieres borrar toda la planificación?');
+
+      if (!confirmDelete) return;
+
+      plannerData = {};
+      createTable();
+    }
+
+    function downloadPlanner() {
+      const dataStr = JSON.stringify(plannerData, null, 2);
+      const blob = new Blob([dataStr], { type: 'application/json' });
+
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'planificacion-semanal.json';
+      a.click();
+
+      URL.revokeObjectURL(url);
+    }
+
+    function uploadPlanner(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        try {
+          plannerData = JSON.parse(e.target.result);
+          createTable();
+        } catch {
+          alert('Archivo no válido');
+        }
+      };
+
+      reader.readAsText(file);
+    }
+
+    renderCategories();
+    createHeader();
+    createTable();
+  </script>
+</body>
+</html>
