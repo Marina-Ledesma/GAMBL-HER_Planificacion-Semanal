@@ -8,16 +8,89 @@
   <style>
     body {
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     td {
       transition: background-color 0.15s ease;
     }
+
+    .planner-cell {
+      min-width: 42px;
+      min-height: 42px;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      h1 {
+        font-size: 1.8rem !important;
+      }
+
+      table {
+        font-size: 11px;
+      }
+
+      th,
+      td {
+        padding: 4px;
+      }
+
+      .planner-cell {
+        min-width: 36px;
+        min-height: 36px;
+      }
+
+      .mobile-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+
+    @media print {
+      body {
+        background: white !important;
+        padding: 0;
+      }
+
+      button,
+      label,
+      input {
+        display: none !important;
+      }
+
+      .no-print {
+        display: none !important;
+      }
+
+      .print-container {
+        box-shadow: none !important;
+        border: none !important;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 10px;
+      }
+
+      td,
+      th {
+        border: 1px solid #999 !important;
+      }
+
+      .planner-cell {
+        height: 24px;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-100 min-h-screen p-6 font-sans">
   <div class="max-w-7xl mx-auto">
-    <div class="bg-white rounded-3xl shadow-xl p-6 mb-6">
+    <div class="bg-white rounded-3xl shadow-xl p-6 mb-6 print-container">
       <h1 class="text-3xl font-bold text-slate-800 mb-2">
         Planificación Semanal
       </h1>
@@ -28,7 +101,7 @@
 
       <div id="categories" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6"></div>
 
-      <div class="flex flex-wrap gap-3 mb-2">
+      <div class="flex flex-wrap gap-3 mb-2 mobile-stack no-print">
         <button
           onclick="clearPlanner()"
           class="px-4 py-2 rounded-xl bg-slate-800 text-white hover:opacity-90"
@@ -52,10 +125,17 @@
             class="hidden"
           />
         </label>
+
+        <button
+          onclick="window.print()"
+          class="px-4 py-2 rounded-xl bg-purple-600 text-white hover:opacity-90"
+        >
+          Imprimir / Guardar PDF
+        </button>
       </div>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-xl overflow-auto border border-slate-200">
+    <div class="bg-white rounded-3xl shadow-xl overflow-auto border border-slate-200 print-container">
       <table class="border-collapse min-w-full" id="plannerTable">
         <thead class="sticky top-0 z-10 bg-slate-100">
           <tr id="headerRow"></tr>
@@ -160,7 +240,7 @@
     function paintCell(cell, key) {
       plannerData[key] = selectedCategory;
 
-      cell.className = `border h-10 cursor-pointer ${categories[selectedCategory]}`;
+      cell.className = `border h-10 planner-cell cursor-pointer ${categories[selectedCategory]}`;
       cell.title = selectedCategory;
     }
 
@@ -186,7 +266,7 @@
           const category = plannerData[key];
           const color = category ? categories[category] : 'bg-white';
 
-          cell.className = `border h-10 cursor-pointer ${color}`;
+          cell.className = `border h-10 planner-cell cursor-pointer ${color}`;
           cell.title = category || 'Vacío';
 
           cell.onmousedown = () => {
@@ -202,7 +282,7 @@
 
           cell.ondblclick = () => {
             delete plannerData[key];
-            cell.className = 'border h-10 cursor-pointer bg-white';
+            cell.className = 'border h-10 planner-cell cursor-pointer bg-white';
             cell.title = 'Vacío';
           };
 
