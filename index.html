@@ -103,6 +103,13 @@
 
       <div class="flex flex-wrap gap-3 mb-2 mobile-stack no-print">
         <button
+          onclick="toggleEraseMode()"
+          id="eraseButton"
+          class="px-4 py-2 rounded-xl bg-orange-500 text-white hover:opacity-90"
+        >
+          Modo borrar: OFF
+        </button>
+        <button
           onclick="clearPlanner()"
           class="px-4 py-2 rounded-xl bg-slate-800 text-white hover:opacity-90"
         >
@@ -171,16 +178,17 @@
 
     const categories = {
       'Descanso': 'bg-blue-300',
-      'Trabajo': 'bg-red-300',
+      'Trabajo': 'bg-red-500',
       'Desplazamientos': 'bg-yellow-300',
       'Cuidado personal': 'bg-green-300',
-      'Tareas de la casa': 'bg-purple-300',
-      'Obligaciones familiares': 'bg-pink-300'
+      'Tareas de la casa': 'bg-orange-300',
+      'Obligaciones familiares': 'bg-fuchsia-400'
     };
 
     let selectedCategory = 'Trabajo';
-    let plannerData = {};
+    let plannerData = JSON.parse(localStorage.getItem('weeklyPlannerData') || '{}');
     let isDragging = false;
+    let eraseMode = false;
 
     const categoryContainer = document.getElementById('categories');
     const headerRow = document.getElementById('headerRow');
@@ -237,11 +245,39 @@
       return slots;
     }
 
-    function paintCell(cell, key) {
-      plannerData[key] = selectedCategory;
+    function saveToLocalStorage() {
+      localStorage.setItem('weeklyPlannerData', JSON.stringify(plannerData));
+    }
 
-      cell.className = `border h-10 planner-cell cursor-pointer ${categories[selectedCategory]}`;
-      cell.title = selectedCategory;
+    function paintCell(cell, key) {
+      if (eraseMode) {
+        delete plannerData[key];
+            saveToLocalStorage();
+            cell.className = 'border h-10 planner-cell cursor-pointer bg-white';
+            cell.title = 'Vacío';
+      } else {
+        plannerData[key] = selectedCategory;
+        cell.className = `border h-10 planner-cell cursor-pointer ${categories[selectedCategory]}`;
+        cell.title = selectedCategory;
+      }
+
+      saveToLocalStorage();
+    }
+
+    function toggleEraseMode() {
+      eraseMode = !eraseMode;
+
+      const button = document.getElementById('eraseButton');
+
+      if (eraseMode) {
+        button.innerText = 'Modo borrar: ON';
+        button.classList.remove('bg-orange-500');
+        button.classList.add('bg-red-600');
+      } else {
+        button.innerText = 'Modo borrar: OFF';
+        button.classList.remove('bg-red-600');
+        button.classList.add('bg-orange-500');
+      }
     }
 
     function createTable() {
@@ -303,6 +339,7 @@
       if (!confirmDelete) return;
 
       plannerData = {};
+      saveToLocalStorage();
       createTable();
     }
 
@@ -329,6 +366,7 @@
       reader.onload = function(e) {
         try {
           plannerData = JSON.parse(e.target.result);
+          saveToLocalStorage();
           createTable();
         } catch {
           alert('Archivo no válido');
