@@ -137,10 +137,10 @@
         </button>
 
         <button
-          onclick="downloadPlanner()"
+          onclick="downloadPDF()"
           class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:opacity-90"
         >
-          Descargar planificación
+          Descargar PDF
         </button>
 
         
@@ -345,18 +345,15 @@
       createTable();
     }
 
-    function downloadPlanner() {
-      const dataStr = JSON.stringify(plannerData, null, 2);
-      const blob = new Blob([dataStr], { type: 'application/json' });
+    function downloadPDF() {
+      const originalTitle = document.title;
+      document.title = 'planificacion-semanal';
 
-      const url = URL.createObjectURL(blob);
+      window.print();
 
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'planificacion-semanal.json';
-      a.click();
-
-      URL.revokeObjectURL(url);
+      setTimeout(() => {
+        document.title = originalTitle;
+      }, 1000);
     }
 
     function uploadPlanner(event) {
@@ -384,5 +381,3 @@
   </script>
 </body>
 </html>
-
-
