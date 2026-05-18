@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
@@ -95,9 +94,16 @@
         Planificación Semanal
       </h1>
 
-      <p class="text-slate-600 mb-6">
-        Selecciona una categoría y arrastra sobre las celdas para colorear bloques de tiempo.
-      </p>
+      <div class="text-slate-600 mb-6 space-y-2">
+        <p><strong>Cómo utilizar la plantilla:</strong></p>
+        <ul class="list-disc pl-5 space-y-1 text-sm">
+          <li>Selecciona una categoría.</li>
+          <li>Haz clic y arrastra para colorear varias celdas.</li>
+          <li>Activa el modo borrar para eliminar bloques rápidamente.</li>
+          <li>La planificación se guarda automáticamente.</li>
+          <li>La plantilla usa bloques de 30 minutos desde las 05:00 hasta las 04:30.</li>
+        </ul>
+      </div>
 
       <div id="categories" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6"></div>
 
@@ -123,22 +129,9 @@
           Descargar planificación
         </button>
 
-        <label class="px-4 py-2 rounded-xl bg-emerald-600 text-white cursor-pointer hover:opacity-90">
-          Importar planificación
-          <input
-            type="file"
-            accept="application/json"
-            onchange="uploadPlanner(event)"
-            class="hidden"
-          />
-        </label>
+        
 
-        <button
-          onclick="window.print()"
-          class="px-4 py-2 rounded-xl bg-purple-600 text-white hover:opacity-90"
-        >
-          Imprimir / Guardar PDF
-        </button>
+        
       </div>
     </div>
 
@@ -152,18 +145,7 @@
       </table>
     </div>
 
-    <div class="mt-6 bg-white rounded-3xl shadow-xl p-6 text-sm text-slate-700">
-      <h2 class="font-bold text-lg mb-3">Cómo utilizar la plantilla</h2>
-
-      <ul class="space-y-2 list-disc pl-5">
-        <li>Selecciona una categoría.</li>
-        <li>Haz clic y arrastra para colorear varias celdas.</li>
-        <li>Haz doble clic en una celda para borrarla.</li>
-        <li>Puedes descargar tu semana y volver a cargarla más adelante.</li>
-        <li>La planificación usa bloques de 30 minutos.</li>
-      </ul>
     </div>
-  </div>
 
   <script>
     const days = [
@@ -234,12 +216,18 @@
     function generateTimeSlots() {
       const slots = [];
 
-      for (let hour = 0; hour < 24; hour++) {
-        for (let min = 0; min < 60; min += 30) {
-          const h = hour.toString().padStart(2, '0');
-          const m = min.toString().padStart(2, '0');
-          slots.push(`${h}:${m}`);
-        }
+      const startHour = 5;
+
+      for (let i = 0; i < 48; i++) {
+        const totalMinutes = (startHour * 60 + i * 30) % (24 * 60);
+
+        const hour = Math.floor(totalMinutes / 60);
+        const min = totalMinutes % 60;
+
+        const h = hour.toString().padStart(2, '0');
+        const m = min.toString().padStart(2, '0');
+
+        slots.push(`${h}:${m}`);
       }
 
       return slots;
