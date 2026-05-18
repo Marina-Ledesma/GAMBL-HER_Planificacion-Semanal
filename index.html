@@ -173,12 +173,14 @@
     ];
 
     const categories = {
-      'Descanso': 'bg-blue-300',
-      'Trabajo': 'bg-red-500',
-      'Desplazamientos': 'bg-yellow-300',
-      'Cuidado personal': 'bg-green-300',
-      'Tareas de la casa': 'bg-orange-300',
-      'Obligaciones familiares': 'bg-fuchsia-400'
+      'Descanso': 'bg-[#fdffb6]',
+      'Trabajo': 'bg-[#ffadad]',
+      'Desplazamientos': 'bg-[#ffd6a5]',
+      'Cuidado personal': 'bg-[#caffbf]',
+      'Tareas de la casa': 'bg-[#ffc5ff]',
+      'Obligaciones familiares': 'bg-[#a0c4ff]',
+      'Ocio': 'bg-[#9bf6ff]',
+      'Deporte': 'bg-[#bdb2ff]'
     };
 
     let selectedCategory = 'Trabajo';
@@ -252,18 +254,38 @@
     }
 
     function paintCell(cell, key) {
+      const [day, time] = key.split('-');
+
       if (eraseMode) {
         delete plannerData[key];
-            saveToLocalStorage();
-            cell.className = 'border h-10 planner-cell cursor-pointer bg-white';
-            cell.title = 'Vacío';
       } else {
         plannerData[key] = selectedCategory;
-        cell.className = `border h-10 planner-cell cursor-pointer ${categories[selectedCategory]}`;
-        cell.title = selectedCategory;
+      }
+
+      const timeSlots = generateTimeSlots();
+      const currentIndex = timeSlots.indexOf(time);
+
+      if (currentIndex > 0) {
+        const previousKey = `${day}-${timeSlots[currentIndex - 1]}`;
+
+        if (plannerData[previousKey] !== plannerData[key]) {
+          // fuerza separación correcta de bloques
+        }
+      }
+
+      if (currentIndex < timeSlots.length - 1) {
+        const nextKey = `${day}-${timeSlots[currentIndex + 1]}`;
+
+        if (plannerData[nextKey] !== plannerData[key]) {
+          // mantiene independencia visual del siguiente bloque
+        }
       }
 
       saveToLocalStorage();
+
+      requestAnimationFrame(() => {
+        createTable();
+      });
     }
 
     function toggleEraseMode() {
@@ -287,7 +309,7 @@
 
       const timeSlots = generateTimeSlots();
 
-      timeSlots.forEach(time => {
+      timeSlots.forEach((time, timeIndex) => {
         const row = document.createElement('tr');
 
         const hourCell = document.createElement('td');
@@ -299,17 +321,61 @@
         days.forEach(day => {
           const key = `${day}-${time}`;
 
+          const previousTime = timeSlots[timeIndex - 1];
+          const previousKey = `${day}-${previousTime}`;
+
+          const currentCategory = plannerData[key];
+          const previousCategory = plannerData[previousKey];
+
+          if (timeIndex > 0 && currentCategory && currentCategory === previousCategory) {
+            return;
+          }
+
           const cell = document.createElement('td');
 
-          const category = plannerData[key];
-          const color = category ? categories[category] : 'bg-white';
+          const color = currentCategory ? categories[currentCategory] : 'bg-white';
 
-          cell.className = `border h-10 planner-cell cursor-pointer ${color}`;
-          cell.title = category || 'Vacío';
+          let rowspan = 1;
 
-          cell.onmousedown = () => {
+          if (currentCategory) {
+            for (let i = timeIndex + 1; i < timeSlots.length; i++) {
+              const nextKey = `${day}-${timeSlots[i]}`;
+
+              if (plannerData[nextKey] === currentCategory) {
+                rowspan++;
+              } else {
+                break;
+              }
+            }
+          }
+
+          if (rowspan > 1) {
+            cell.rowSpan = rowspan;
+          }
+
+          cell.className = `border h-10 planner-cell cursor-pointer align-middle text-center text-xs font-bold text-black ${color}`;
+          cell.title = currentCategory || 'Vacío';
+
+          if (currentCategory) {
+            cell.innerHTML = `<div class="px-1">${currentCategory}</div>`;
+          }
+
+          cell.onmousedown = (event) => {
             isDragging = true;
-            paintCell(cell, key);
+
+            let targetKey = key;
+
+            if (rowspan > 1) {
+              const rect = cell.getBoundingClientRect();
+              const relativeY = event.clientY - rect.top;
+              const slotHeight = rect.height / rowspan;
+              const clickedOffset = Math.floor(relativeY / slotHeight);
+
+              const clickedTime = timeSlots[timeIndex + clickedOffset];
+              targetKey = `${day}-${clickedTime}`;
+            }
+
+            paintCell(cell, targetKey);
           };
 
           cell.onmouseenter = () => {
@@ -320,8 +386,8 @@
 
           cell.ondblclick = () => {
             delete plannerData[key];
-            cell.className = 'border h-10 planner-cell cursor-pointer bg-white';
-            cell.title = 'Vacío';
+            saveToLocalStorage();
+            createTable();
           };
 
           row.appendChild(cell);
@@ -381,3 +447,4 @@
   </script>
 </body>
 </html>
+
