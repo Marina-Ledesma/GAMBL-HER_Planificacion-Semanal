@@ -8,6 +8,7 @@
     body {
       user-select: none;
       -webkit-tap-highlight-color: transparent;
+      background-color: #FEFEFE !important;
     }
 
     td {
@@ -18,19 +19,46 @@
       position: sticky;
       left: 0;
       z-index: 20;
-      background: rgb(248 250 252);
+      background: #FEFEFE;
     }
 
     .sticky-header {
       position: sticky;
       left: 0;
       z-index: 30;
-      background: rgb(226 232 240);
+      background: #e8e5d4;
     }
 
     .planner-cell {
       min-width: 42px;
       min-height: 42px;
+    }
+
+    /* Estilos para las categorías con la nueva paleta */
+    .cat-descanso { background-color: #d1cfac; color: #3d3a2a; }
+    .cat-trabajo { background-color: #b9b794; color: #2d2b1e; }
+    .cat-desplazamientos { background-color: #9b976e; color: #1f1d14; }
+    .cat-cuidado-personal { background-color: #f2e1bd; color: #4d3a1a; }
+    .cat-tareas-casa { background-color: #f9e7b9; color: #4d3a1a; }
+    .cat-obligaciones-familiares { background-color: #ecbf8d; color: #4d2a0a; }
+    .cat-ocio { background-color: #d38f52; color: #1f0f00; }
+    .cat-deporte { background-color: #835e35; color: #f0e0c0; }
+
+    /* Botones de categoría */
+    .cat-btn {
+      padding: 0.75rem;
+      border-radius: 1rem;
+      border: 2px solid transparent;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .cat-btn-selected {
+      border-color: #1a1a1a !important;
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
 
     @media (max-width: 768px) {
@@ -101,14 +129,14 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 min-h-screen p-6 font-sans">
+<body class="min-h-screen p-6 font-sans" style="background-color: #FEFEFE;">
   <div class="max-w-7xl mx-auto">
-    <div class="bg-white rounded-3xl shadow-xl p-6 mb-6 print-container">
-      <h1 class="text-3xl font-bold text-slate-800 mb-2">
+    <div class="bg-white rounded-3xl shadow-xl p-6 mb-6 print-container" style="background-color: #FEFEFE;">
+      <h1 class="text-3xl font-bold mb-2" style="color: #4d3a1a;">
         Planificación Semanal
       </h1>
 
-      <div class="text-slate-600 mb-6 space-y-2">
+      <div class="mb-6 space-y-2" style="color: #5a4a2a;">
         <p><strong>Cómo utilizar la plantilla:</strong></p>
         <ul class="list-disc pl-5 space-y-1 text-sm">
           <li>Selecciona una categoría.</li>
@@ -125,41 +153,39 @@
         <button
           onclick="toggleEraseMode()"
           id="eraseButton"
-          class="px-4 py-2 rounded-xl bg-orange-500 text-white hover:opacity-90"
+          class="px-4 py-2 rounded-xl text-white hover:opacity-90"
+          style="background-color: #d38f52;"
         >
           Modo borrar: OFF
         </button>
         <button
           onclick="clearPlanner()"
-          class="px-4 py-2 rounded-xl bg-slate-800 text-white hover:opacity-90"
+          class="px-4 py-2 rounded-xl text-white hover:opacity-90"
+          style="background-color: #835e35;"
         >
           Borrar planificación
         </button>
 
         <button
           onclick="downloadPDF()"
-          class="px-4 py-2 rounded-xl bg-blue-600 text-white hover:opacity-90"
+          class="px-4 py-2 rounded-xl text-white hover:opacity-90"
+          style="background-color: #9b976e;"
         >
           Descargar PDF
         </button>
-
-        
-
-        
       </div>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-xl overflow-auto border border-slate-200 print-container">
+    <div class="bg-white rounded-3xl shadow-xl overflow-auto border" style="background-color: #FEFEFE; border-color: #d1cfac;">
       <table class="border-collapse min-w-full" id="plannerTable">
-        <thead class="sticky top-0 z-10 bg-slate-100">
+        <thead class="sticky top-0 z-10" style="background-color: #e8e5d4;">
           <tr id="headerRow"></tr>
         </thead>
 
         <tbody id="plannerBody"></tbody>
       </table>
     </div>
-
-    </div>
+  </div>
 
   <script>
     const days = [
@@ -173,14 +199,14 @@
     ];
 
     const categories = {
-      'Descanso': 'bg-[#fdffb6]',
-      'Trabajo': 'bg-[#ffadad]',
-      'Desplazamientos': 'bg-[#ffd6a5]',
-      'Cuidado personal': 'bg-[#caffbf]',
-      'Tareas de la casa': 'bg-[#ffc5ff]',
-      'Obligaciones familiares': 'bg-[#a0c4ff]',
-      'Ocio': 'bg-[#9bf6ff]',
-      'Deporte': 'bg-[#bdb2ff]'
+      'Descanso': 'cat-descanso',
+      'Trabajo': 'cat-trabajo',
+      'Desplazamientos': 'cat-desplazamientos',
+      'Cuidado personal': 'cat-cuidado-personal',
+      'Tareas de la casa': 'cat-tareas-casa',
+      'Obligaciones familiares': 'cat-obligaciones-familiares',
+      'Ocio': 'cat-ocio',
+      'Deporte': 'cat-deporte'
     };
 
     let selectedCategory = 'Trabajo';
@@ -195,15 +221,13 @@
     function renderCategories() {
       categoryContainer.innerHTML = '';
 
-      Object.entries(categories).forEach(([name, color]) => {
+      Object.entries(categories).forEach(([name, colorClass]) => {
         const button = document.createElement('button');
 
-        button.className = `p-3 rounded-2xl border-2 text-sm font-medium transition-all ${color}`;
+        button.className = `cat-btn ${colorClass}`;
 
         if (selectedCategory === name) {
-          button.classList.add('border-slate-900', 'scale-105', 'shadow-lg');
-        } else {
-          button.classList.add('border-transparent');
+          button.classList.add('cat-btn-selected');
         }
 
         button.innerText = name;
@@ -218,11 +242,11 @@
     }
 
     function createHeader() {
-      headerRow.innerHTML = '<th class="border p-2 min-w-[90px] bg-slate-200 text-slate-700 text-sm sticky-header">Hora</th>';
+      headerRow.innerHTML = '<th class="border p-2 min-w-[90px] text-sm sticky-header" style="border-color: #b9b794; background-color: #e8e5d4; color: #4d3a1a;">Hora</th>';
 
       days.forEach(day => {
         headerRow.innerHTML += `
-          <th class="border p-2 min-w-[150px] bg-slate-200 text-slate-700">
+          <th class="border p-2 min-w-[150px] text-sm" style="border-color: #b9b794; background-color: #e8e5d4; color: #4d3a1a;">
             ${day}
           </th>
         `;
@@ -231,18 +255,14 @@
 
     function generateTimeSlots() {
       const slots = [];
-
       const startHour = 5;
 
       for (let i = 0; i < 48; i++) {
         const totalMinutes = (startHour * 60 + i * 30) % (24 * 60);
-
         const hour = Math.floor(totalMinutes / 60);
         const min = totalMinutes % 60;
-
         const h = hour.toString().padStart(2, '0');
         const m = min.toString().padStart(2, '0');
-
         slots.push(`${h}:${m}`);
       }
 
@@ -262,25 +282,6 @@
         plannerData[key] = selectedCategory;
       }
 
-      const timeSlots = generateTimeSlots();
-      const currentIndex = timeSlots.indexOf(time);
-
-      if (currentIndex > 0) {
-        const previousKey = `${day}-${timeSlots[currentIndex - 1]}`;
-
-        if (plannerData[previousKey] !== plannerData[key]) {
-          // fuerza separación correcta de bloques
-        }
-      }
-
-      if (currentIndex < timeSlots.length - 1) {
-        const nextKey = `${day}-${timeSlots[currentIndex + 1]}`;
-
-        if (plannerData[nextKey] !== plannerData[key]) {
-          // mantiene independencia visual del siguiente bloque
-        }
-      }
-
       saveToLocalStorage();
 
       requestAnimationFrame(() => {
@@ -290,17 +291,14 @@
 
     function toggleEraseMode() {
       eraseMode = !eraseMode;
-
       const button = document.getElementById('eraseButton');
 
       if (eraseMode) {
         button.innerText = 'Modo borrar: ON';
-        button.classList.remove('bg-orange-500');
-        button.classList.add('bg-red-600');
+        button.style.backgroundColor = '#835e35';
       } else {
         button.innerText = 'Modo borrar: OFF';
-        button.classList.remove('bg-red-600');
-        button.classList.add('bg-orange-500');
+        button.style.backgroundColor = '#d38f52';
       }
     }
 
@@ -313,7 +311,8 @@
         const row = document.createElement('tr');
 
         const hourCell = document.createElement('td');
-        hourCell.className = 'border text-xs text-center p-2 bg-slate-50 font-medium text-slate-600 sticky-hour';
+        hourCell.className = 'border text-xs text-center p-2 font-medium sticky-hour';
+        hourCell.style.cssText = 'border-color: #b9b794; background-color: #FEFEFE; color: #4d3a1a;';
         hourCell.innerText = time;
 
         row.appendChild(hourCell);
@@ -332,15 +331,12 @@
           }
 
           const cell = document.createElement('td');
-
-          const color = currentCategory ? categories[currentCategory] : 'bg-white';
-
+          const colorClass = currentCategory ? categories[currentCategory] : '';
           let rowspan = 1;
 
           if (currentCategory) {
             for (let i = timeIndex + 1; i < timeSlots.length; i++) {
               const nextKey = `${day}-${timeSlots[i]}`;
-
               if (plannerData[nextKey] === currentCategory) {
                 rowspan++;
               } else {
@@ -353,7 +349,8 @@
             cell.rowSpan = rowspan;
           }
 
-          cell.className = `border h-10 planner-cell cursor-pointer align-middle text-center text-xs font-bold text-black ${color}`;
+          cell.className = `border h-10 planner-cell cursor-pointer align-middle text-center text-xs font-bold ${colorClass}`;
+          cell.style.borderColor = '#b9b794';
           cell.title = currentCategory || 'Vacío';
 
           if (currentCategory) {
@@ -422,29 +419,9 @@
       }, 1000);
     }
 
-    function uploadPlanner(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-
-      reader.onload = function(e) {
-        try {
-          plannerData = JSON.parse(e.target.result);
-          saveToLocalStorage();
-          createTable();
-        } catch {
-          alert('Archivo no válido');
-        }
-      };
-
-      reader.readAsText(file);
-    }
-
     renderCategories();
     createHeader();
     createTable();
   </script>
 </body>
 </html>
-
