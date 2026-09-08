@@ -34,6 +34,20 @@
       min-height: 42px;
     }
 
+    .genially-link {
+    color: #0000EE;
+    text-decoration: underline;
+    margin-left: 1.5rem;
+   }
+
+    .genially-link:visited {
+      color: #551A8B;
+    }
+
+    .genially-link:hover {
+      color: #0000AA;
+    }
+
     /* Estilos para las categorías con la nueva paleta */
     .cat-descanso { background-color: #d1cfac; color: #3d3a2a; }
     .cat-trabajo { background-color: #b9b794; color: #2d2b1e; }
@@ -132,7 +146,7 @@
 <body class="min-h-screen p-6 font-sans" style="background-color: #FEFEFE;">
   <div class="max-w-7xl mx-auto">
     <div class="bg-white rounded-3xl shadow-xl p-6 mb-6 print-container" style="background-color: #FEFEFE;">
-      <h1 class="text-3xl font-bold mb-2" style="color: #4d3a1a;">
+      <h1 class="text-5xl font-bold mb-2" style="color: #4d3a1a;">
         Planificación Semanal
       </h1>
 
@@ -145,6 +159,27 @@
           <li>La planificación se guarda automáticamente.</li>
           <li>La plantilla usa bloques de 30 minutos desde las 05:00 hasta las 04:30.</li>
         </ul>
+      </div>
+
+      <div class="mb-6 space-y-2" style="color: #5a4a2a;">
+        <p><strong>Cómo volver al programa GAMBL-HER:</strong></p>
+        <ul class="list-disc pl-5 space-y-1 text-sm">
+          <li>Esta planificación se ha abierto en una pestaña nueva de tu navegador.</li>
+          <li>Puedes volver al programa buscándo la pestaña en tu listado de pestañas abiertas.</li>
+          <li>O haciendo click en el siguiente enlace:
+                <a
+                class="genially-link"
+                href="https://view.genially.com/6a3a7ff533b64437894c9096"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Abrir programa GAMBL-HER"
+                title="Abrir programa GAMBL-HER"
+            >
+                🔗 | Programa GAMBL-HER
+                 </a>
+              </li>
+        </ul>
+
       </div>
 
       <div id="categories" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-6"></div>
@@ -184,6 +219,13 @@
 
         <tbody id="plannerBody"></tbody>
       </table>
+    <div
+      class="text-center py-3 text-sm font-semibold"
+      style="color:#5a4a2a;"
+    >
+      Programa GAMBL-HER
+    </div>
+
     </div>
   </div>
 
